@@ -1,0 +1,33 @@
+#!/bin/sh
+
+set -o nounset -o errexit
+
+error()
+{
+    printf >&2 '%s\n' "$@"
+    exit 1
+}
+
+is_root()
+{
+    [ "$(id -u)" -eq 0 ]
+}
+
+start_root_shell()
+{
+    exec sudo -s
+}
+
+if [ "$#" -gt 0 ]
+then
+    error "Usage of $(basename "$0") script:" \
+    '' \
+    'Starts a root shell, no argument accepted.'
+fi
+
+if is_root
+then
+    error 'You are already superuser!'
+fi
+
+start_root_shell
