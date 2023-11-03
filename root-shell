@@ -1,5 +1,16 @@
 #!/bin/sh
 
+#------------------------------------------------------------
+#--      Become root, but prevent nested root shells       --
+#--           Code language: POSIX shell script            --
+#--            Copyright: 2023 Vlastimil Burian            --
+#--             Bugs: info@vlastimilburian.cz              --
+#--             GitHub: rebrand.ly/root-shell              --
+#--                    License: GPL 3.0                    --
+#--                 Version: 1.0 (stable)                  --
+#--                 Released: 2023-Nov-03                  --
+#------------------------------------------------------------
+
 set -o nounset -o errexit
 
 error()
