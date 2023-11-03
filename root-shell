@@ -6,39 +6,37 @@
 #--            Copyright: 2023 Vlastimil Burian            --
 #--             Bugs: info@vlastimilburian.cz              --
 #--             GitHub: rebrand.ly/root-shell              --
-#--                    License: GPL 3.0                    --
+#--                      License: MIT                      --
 #--                 Version: 1.0 (stable)                  --
 #--                 Released: 2023-Nov-03                  --
 #------------------------------------------------------------
 
 set -o nounset -o errexit
 
-error()
+error() { printf >&2 '%s\n' "$@"; exit 1; }
+
+usage()
 {
-    printf >&2 '%s\n' "$@"
-    exit 1
+    # shellcheck disable=SC2016
+    error \
+        "Usage of $(basename "$0") script:" \
+        '' \
+        'Starts a root shell using `sudo -s`, no argument accepted.'
 }
 
-is_root()
-{
-    [ "$(id -u)" -eq 0 ]
-}
+check_dependency() { command -v sudo >/dev/null 2>&1; }
 
-start_root_shell()
-{
-    exec sudo -s
-}
-
-if [ "$#" -gt 0 ]
-then
-    error "Usage of $(basename "$0") script:" \
-    '' \
-    'Starts a root shell, no argument accepted.'
+if ! check_dependency; then
+    # shellcheck disable=SC2016
+    printf >&2 '%s\n\n' '`sudo` is required by this script.'; usage
 fi
 
-if is_root
-then
-    error 'You are already superuser!'
-fi
+if [ "$#" -gt 0 ]; then usage; fi
+
+is_root() { [ "$(id -u)" -eq 0 ]; }
+
+if is_root; then error 'You are already superuser.'; fi
+
+start_root_shell() { exec sudo -s; }
 
 start_root_shell
