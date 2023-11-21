@@ -5,10 +5,10 @@
 #--           Code language: POSIX shell script            --
 #--            Copyright: 2023 Vlastimil Burian            --
 #--             Bugs: info@vlastimilburian.cz              --
-#--             GitHub: rebrand.ly/root-shell              --
+#--             GitHub: burian.work/root-shell             --
 #--                      License: MIT                      --
 #--                 Version: 1.1 (stable)                  --
-#--                 Released: 2023-Nov-08                  --
+#--                 Released: 2023-Nov-21                  --
 #------------------------------------------------------------
 
 # You may customize this to e.g.: "sudo -i", or even "su",...
