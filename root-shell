@@ -1,50 +1,73 @@
 #!/bin/sh
 
 #------------------------------------------------------------
-#--      Become root, but prevent nested root shells       --
+#--         Become root, but prevent nested shells         --
 #--           Code language: POSIX shell script            --
-#--            Copyright: 2023 Vlastimil Burian            --
-#--             Bugs: info@vlastimilburian.cz              --
+#--         Copyright: 2023-2024 Vlastimil Burian          --
+#--             Email: info@vlastimilburian.cz             --
 #--             GitHub: burian.work/root-shell             --
 #--                      License: MIT                      --
-#--                 Version: 1.1 (stable)                  --
-#--                 Released: 2023-Nov-21                  --
+#--                Version: 1.2 (final RC)                 --
+#--                 Released: 2024-Feb-21                  --
 #------------------------------------------------------------
-
-# You may customize this to e.g.: "sudo -i", or even "su",...
-readonly root_command="sudo -s"
 
 set -o nounset -o errexit
 
+# You may customize these to e.g.: sudo -i, or su -, etc.
+
+# The below constant variable must contain a single command,
+# which you want to use to become root. Quotes not needed.
+readonly root_command=sudo
+
+# The below constant variable may contain more than one switch
+# for the command above. Quotes needed if more switches are used.
+readonly root_options=-s
+
+# This routine could in theory be removed, it serves purpose for
+# usage function. There would be a trailing space with no option
+# used, for example with the root command su it would print `su `.
+if [ -n "$root_options" ]
+then
+    become_root_command="$root_command $root_options"
+else
+    become_root_command=$root_command
+fi
+
+# Error message(s) function, whatever you feed it goes to stderr.
 error()
 {
     printf >&2 '%s\n' "$@"
     exit 1
 }
 
+# This function prints usage to stderr, with the whole root command.
 usage()
 {
     error \
         "Usage of $(basename "$0") script:" \
         "" \
-        "Starts a root shell using '$root_command', no argument accepted."
+        "Starts a root shell using \`$become_root_command\`, no command-line argument accepted."
 }
 
+# A check for zero given arguments, or print usage.
 if [ "$#" -gt 0 ]
 then
     usage
 fi
 
+# This check is the sole reason for this script's existence.
+# It prevents root shell nesting by checking if we are already root.
 if [ "$(id -u)" -eq 0 ]
 then
-    error "You are already superuser."
+    error "You are already superuser. Nested root shells are disallowed."
 fi
 
-if ! command -v sudo >/dev/null 2>&1
+# If the root command is sudo, then it must be installed in order to work.
+if [ "$root_command" = sudo ] && ! command -v sudo >/dev/null 2>&1
 then
-    printf >&2 '%s\n\n' "'sudo' is required by this script."
-    usage
+    error "\`sudo\` is required by this script."
 fi
 
-# start root shell
-exec $root_command
+# Start the almighty root shell with the above-defined commmand and options.
+# Note that exec will replace current shell with the new one.
+exec $become_root_command
