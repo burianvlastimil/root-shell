@@ -6,7 +6,7 @@
 #--                          Code: POSIX shell script                          --
 #--                                License: MIT                                --
 #--                                Version: 2.0                                --
-#--                          Released on: 2024-Jul-04                          --
+#--                          Released on: 2024-Nov-18                          --
 #--                    Copyright 2023-2024 Vlastimil Burián                    --
 #--                   E-mail: vlastimilburian@protonmail.com                   --
 #--------------------------------------------------------------------------------
@@ -63,6 +63,9 @@ fi
 if [ "$root_command" = sudo ] && ! command -v sudo >/dev/null 2>&1; then
     error "Currently, \`sudo\` is set as the root command, and as such is required by this script, yet it appears not installed."
 fi
+
+# Print the root command to be executed.
+printf '%s\n' "Executing root command: \`$become_root_command\`"
 
 # Start the almighty root shell with the above-defined commmand and options.
 # Note that exec will replace current shell with the new one.
