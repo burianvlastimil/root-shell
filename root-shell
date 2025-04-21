@@ -1,0 +1,83 @@
+#!/bin/sh
+
+#--------------------------------------------------------------------------------
+#--              Become superuser, but prevent nested root shells              --
+#--                    Git: https://burian.work/root-shell                     --
+#--                             Code: POSIX shell                              --
+#--                                License: MIT                                --
+# --                         Version: 2.3 unfinished!                          --
+#--                          Released on: 2025-Apr-21                          --
+#--                      E-mail: info@vlastimilburian.cz                       --
+#--                    Copyright 2023-2025 Vlastimil Burián                    --
+#--------------------------------------------------------------------------------
+
+set -o nounset -o errexit
+
+# https://www.shellcheck.net/wiki/SC3016
+#if [ -n "${root_command+x}" ]; then echo Y; else echo N; fi
+# tests if var is set (but it can be empty)
+
+
+
+# Error message function, whatever you feed it goes to stderr and exits script right after.
+error()
+{
+    printf >&2 '%s\n' "$@"
+    exit 1
+}
+
+# This check prevents root shell nesting by checking if we are already root.
+if [ "$( id -u )" -eq 0 ]; then
+    error "You are already superuser. Nested root shells are disallowed."
+fi
+
+
+
+# HOW TO BE ABLE TO HANDLE SYMLINKS ??
+#sc_dir=$( dirname "$( readlink -f "$0" )" ) # what about e.g /sbin ??
+
+script_dir=$( dirname "$0" )
+config_file="$script_dir"/root-shell.conf
+
+
+if [ ! -f "$config_file" ]; then
+    error "The configuration file does not exist."
+fi
+
+if [ ! -r "$config_file" ]; then
+    error "The configuration file exists, but it is not readable by this script."
+fi
+
+# Load the configuration file with the base variables.
+. "$config_file"
+
+
+# There would be a trailing space with no option
+# used, for example with the root command su it would print `su `.
+if [ -n "$root_cmd_opt" ]; then
+    become_root_command="$root_command $root_cmd_opt"
+else
+    become_root_command=$root_command
+fi
+
+
+# Check for zero given arguments, or print usage to stderr, with the whole root command.
+if [ "$#" -gt 0 ]; then
+    error \
+        "Usage of $( basename "$0" ) script:" \
+        "" \
+        "Starts a root shell using \`$become_root_command\`, no arguments accepted."
+fi
+
+
+# If the root command is sudo, then it must be installed in order for it to work.
+if [ "$root_command" = sudo ] && ! command -v sudo >/dev/null 2>&1; then
+    error "Currently, \`sudo\` is set as the root command, and as such is required by this script, yet it appears not to be installed."
+fi
+
+# Print the whole root command to be executed.
+printf '%s\n' "Executing root command: \`$become_root_command\`"
+
+# Start the almighty root shell with the above-defined commmand and options.
+# Note that exec will replace current shell with the new one.
+exec $become_root_command
